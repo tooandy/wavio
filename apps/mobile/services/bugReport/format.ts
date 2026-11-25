@@ -83,6 +83,8 @@ export const APP_SETTING_RULES: Record<AppSettingKey, FieldRule> = {
   sleepTimerLastCustomMinutes: "value",
   showPlayerAudioQuality: "value",
   showPlayerRating: "value",
+  showPlayerDislike: "value",
+  skipOnDislike: "value",
   mediaControlsLeft: "value",
   mediaControlsRight: "value",
   queueSyncPriority: "value",

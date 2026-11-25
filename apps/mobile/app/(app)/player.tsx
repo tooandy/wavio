@@ -12,9 +12,10 @@ import Mic2 from "lucide-react-native/icons/mic-vocal";
 import RadioIcon from "lucide-react-native/icons/radio";
 import SkipBack from "lucide-react-native/icons/skip-back";
 import SkipForward from "lucide-react-native/icons/skip-forward";
+import ThumbsDown from "lucide-react-native/icons/thumbs-down";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -87,6 +88,7 @@ import usePodcasts from "@/stores/podcasts";
 import useQueue, { nextRepeatMode, type QueueTrack } from "@/stores/queue";
 import useUpnp from "@/stores/upnp";
 import { formatAudioQuality } from "@/utils/audioQuality";
+import { isDisliked, toggleDislikeRating } from "@/utils/dislikeRating";
 import { HEADER_TINT_COLOR } from "@/utils/headerGradient";
 import { hasLyricContent, isSyncedLyrics } from "@/utils/lyrics";
 import { cn } from "@/utils/tailwind";
@@ -261,6 +263,15 @@ export default function PlayerScreen() {
   const inlineLyricsEnabled = useApp((s) => s.playerInlineLyrics);
   const setPlayerInlineLyrics = useApp((s) => s.setPlayerInlineLyrics);
   const podcastPlaybackRate = useApp((s) => s.podcastPlaybackRate);
+  const showPlayerDislike = useApp((s) => s.showPlayerDislike);
+  const skipOnDislike = useApp((s) => s.skipOnDislike);
+  const showDislike =
+    showPlayerDislike &&
+    capabilities.setRating &&
+    !!playingTrack?.id &&
+    !isRadio &&
+    !isSpokenWord;
+  const disliked = isDisliked(playingTrack?.userRating);
   const showPlayerRating = useApp((s) => s.showPlayerRating);
   const showPlayerAudioQuality = useApp((s) => s.showPlayerAudioQuality);
   const showRating =
@@ -519,6 +530,28 @@ export default function PlayerScreen() {
         ),
       });
       throw error;
+    }
+  };
+
+  const handleDislikePress = async () => {
+    if (!showDislike || !playingTrack?.id || doSetRating.isPending) return;
+    const trackId = playingTrack.id;
+    const index = useQueue.getState().currentIndex;
+    const rating = toggleDislikeRating(playingTrack.userRating);
+    try {
+      await handleRatingChange(rating);
+    } catch {
+      // The existing rating handler already displays the error toast.
+      return;
+    }
+    const queue = useQueue.getState();
+    if (
+      rating === 1 &&
+      skipOnDislike &&
+      queue.currentIndex === index &&
+      queue.getCurrent()?.id === trackId
+    ) {
+      skipNext();
     }
   };
 
@@ -835,6 +868,29 @@ export default function PlayerScreen() {
                     }}
                   />
                 )}
+                {showDislike && (
+                  <Pressable
+                    testID="player-dislike-button"
+                    accessibilityRole="togglebutton"
+                    accessibilityLabel={t(
+                      "app.settings.playbackSettings.playerDislikeAction",
+                    )}
+                    accessibilityState={{
+                      checked: disliked,
+                      disabled: doSetRating.isPending,
+                    }}
+                    disabled={doSetRating.isPending}
+                    hitSlop={8}
+                    onPress={handleDislikePress}
+                    style={{ opacity: doSetRating.isPending ? 0.5 : 1 }}
+                  >
+                    <ThumbsDown
+                      size={24}
+                      color={disliked ? "#f87171" : "rgba(255,255,255,0.8)"}
+                      fill={disliked ? "#f87171" : "none"}
+                    />
+                  </Pressable>
+                )}
                 {!isRadio && !isSpokenWord && (
                   <AnimatedHeart
                     testID="player-favorite-button"
@@ -860,6 +916,7 @@ export default function PlayerScreen() {
                       testID="player-star-rating"
                       value={playingTrack?.userRating ?? 0}
                       onChange={handleRatingChange}
+                      disabled={doSetRating.isPending}
                       size={18}
                       spacing={4}
                       emptyColor="rgba(255,255,255,0.4)"

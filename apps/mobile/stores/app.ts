@@ -325,6 +325,10 @@ interface AppStore {
   setSleepTimerLastCustomMinutes: (minutes: number) => void;
   showPlayerAudioQuality: boolean;
   setShowPlayerAudioQuality: (enabled: boolean) => void;
+  showPlayerDislike: boolean;
+  setShowPlayerDislike: (enabled: boolean) => void;
+  skipOnDislike: boolean;
+  setSkipOnDislike: (enabled: boolean) => void;
   showPlayerRating: boolean;
   setShowPlayerRating: (enabled: boolean) => void;
   mediaControlsLeft: MediaControlButton | null;
@@ -640,6 +644,10 @@ export const useAppBase = create<AppStore>()(
       setShowPlayerAudioQuality: (showPlayerAudioQuality: boolean) => {
         set({ showPlayerAudioQuality });
       },
+      showPlayerDislike: false,
+      setShowPlayerDislike: (showPlayerDislike) => set({ showPlayerDislike }),
+      skipOnDislike: false,
+      setSkipOnDislike: (skipOnDislike) => set({ skipOnDislike }),
       showPlayerRating: false,
       setShowPlayerRating: (showPlayerRating: boolean) => {
         set({ showPlayerRating });

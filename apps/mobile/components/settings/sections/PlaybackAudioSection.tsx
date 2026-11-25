@@ -115,6 +115,10 @@ export default function PlaybackAudioSection() {
   const setShowPlayerAudioQuality = useApp(
     (store) => store.setShowPlayerAudioQuality,
   );
+  const showPlayerDislike = useApp((store) => store.showPlayerDislike);
+  const setShowPlayerDislike = useApp((store) => store.setShowPlayerDislike);
+  const skipOnDislike = useApp((store) => store.skipOnDislike);
+  const setSkipOnDislike = useApp((store) => store.setSkipOnDislike);
   const showPlayerRating = useApp((store) => store.showPlayerRating);
   const setShowPlayerRating = useApp((store) => store.setShowPlayerRating);
   const mediaControlsLeft = useApp((store) => store.mediaControlsLeft);
@@ -376,6 +380,26 @@ export default function PlaybackAudioSection() {
             )}
             value={showPlayerRating}
             onToggle={(value) => setShowPlayerRating(value)}
+          />
+        )}
+        {capabilities.setRating && (
+          <SettingsToggleRow
+            label={t("app.settings.playbackSettings.playerDislikeLabel")}
+            description={t(
+              "app.settings.playbackSettings.playerDislikeDescription",
+            )}
+            value={showPlayerDislike}
+            onToggle={setShowPlayerDislike}
+          />
+        )}
+        {capabilities.setRating && showPlayerDislike && (
+          <SettingsToggleRow
+            label={t("app.settings.playbackSettings.skipOnDislikeLabel")}
+            description={t(
+              "app.settings.playbackSettings.skipOnDislikeDescription",
+            )}
+            value={skipOnDislike}
+            onToggle={setSkipOnDislike}
           />
         )}
         {Platform.OS === "android" && (

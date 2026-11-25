@@ -49,6 +49,8 @@ const reset = () =>
       replayGainMode: "off",
       replayGainPreampDb: 0,
       podcastPlaybackRate: 1,
+      showPlayerDislike: false,
+      skipOnDislike: false,
       endlessPlaybackEnabled: false,
       queueSyncPriority: "off",
       orientation: Orientation.PORTRAIT_UP,
@@ -66,6 +68,21 @@ beforeEach(() => {
 });
 
 describe("app store", () => {
+  it("defaults dislike controls to off and persists their independent settings", async () => {
+    const initial = useAppBase.getInitialState();
+    expect(initial.showPlayerDislike).toBe(false);
+    expect(initial.skipOnDislike).toBe(false);
+    useAppBase.getState().setShowPlayerDislike(true);
+    useAppBase.getState().setSkipOnDislike(true);
+    const storage = jest.requireMock("@/config/storage").zustandStorage;
+    const persisted = JSON.parse(storage.getItem("app"));
+    expect(persisted.state.showPlayerDislike).toBe(true);
+    expect(persisted.state.skipOnDislike).toBe(true);
+    await useAppBase.persist.rehydrate();
+    expect(useAppBase.getState().showPlayerDislike).toBe(true);
+    expect(useAppBase.getState().skipOnDislike).toBe(true);
+  });
+
   it("initializes layout from the current window width", () => {
     const initial = useAppBase.getInitialState();
     expect(initial.windowWidth).toBe(Dimensions.get("window").width);
